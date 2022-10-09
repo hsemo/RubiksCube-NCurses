@@ -1,21 +1,20 @@
-#include <iostream>
-#include <conio.h>
 #include <random>
 #include <vector>
 #include <fstream>
-#include "rubiks.h"
+#include "Rubiks.h"
 
 // using namespace std;
 using std::string; using std::random_device; using std::mt19937; using std::uniform_int_distribution;
 using std::cout; using std::printf; using std::swap; using std::endl;
 
-rubiks::rubiks()
+Rubiks::Rubiks()
 {
     int moves = 20;
     string mvs = "";
     random_device rd;
     mt19937 mt(rd());
     uniform_int_distribution<int> dist(1, 27);
+    // random moves generator to initialize new cube 
     for (int i = 0; i < moves; i++)
     {
         mvs += totalValidMoves[dist(mt) - 1] + " ";
@@ -25,23 +24,23 @@ rubiks::rubiks()
     executeMoves(mvs);
 }
 
-rubiks::rubiks(string moves)
+Rubiks::Rubiks(string moves)
 {
     initialCube();
     executeMoves(moves);
 }
 
-rubiks::rubiks(rubiks *cube1)
+Rubiks::Rubiks(Rubiks *cube1)
 {
     copy((*cube1).cube, true);
 }
 
-rubiks::rubiks(char (*cb)[3][3])
+Rubiks::Rubiks(char (*cb)[3][3])
 {
     copy(cb, true);
 }
 
-void rubiks::initialCube(void)
+void Rubiks::initialCube(void)
 {
     for (int i = 0; i < 6; i++)
     {
@@ -55,7 +54,7 @@ void rubiks::initialCube(void)
     }
 }
 
-void rubiks::copy(void)
+void Rubiks::copy(void)
 {
     for (int i = 0; i < 6; i++)
     {
@@ -69,11 +68,9 @@ void rubiks::copy(void)
     }
 }
 
-void rubiks::copy(char (*cb)[3][3], bool givenTocurrent = true)
+void Rubiks::copy(char (*cb)[3][3], bool givenTocurrent = true)
 {
-    char(*dst)[3][3] = cube, (*src)[3][3] = cb;
-
-    // cout << "'copy(char (*cb)[3][3], bool givenTocurrent = true)' func is called\n";
+    char (*dst)[3][3] = cube, (*src)[3][3] = cb;
 
     if (!givenTocurrent)
     {
@@ -94,28 +91,23 @@ void rubiks::copy(char (*cb)[3][3], bool givenTocurrent = true)
     }
 }
 
-void rubiks::copy(rubiks& tempCube){
-    // cout << "\n'copy(rubiks& tempCube)' func called\n";
+void Rubiks::copy(Rubiks& tempCube){
     copy(tempCube.cube, true);
 }
 
-int rubiks::getval(char key)
+int Rubiks::getval(char key)
 {
-    // cout << "'getval(char key)' func is called!!\n";
-    // cout << "getting value of KEY: " << key << endl;
     for (int i = 0; i < 6; i++)
     {
         if (keys[i] == key)
         {
-            // cout << "\'" << vals[i] << "\' is returned, when 'i' is: " << i << endl;
             return vals[i];
         }
     }
-    // cout << "'-1' is returned\n";
     return -1;
 }
 
-char rubiks::getkey(int val)
+char Rubiks::getkey(int val)
 {
     for (int i = 0; i < 6; i++)
     {
@@ -127,24 +119,11 @@ char rubiks::getkey(int val)
     return -1;
 }
 
-void rubiks::setval(char key, int val)
-{
-    for (int i = 0; i < 6; i++)
-    {
-        if (keys[i] == key)
-        {
-            vals[i] = val;
-            return;
-        }
-    }
-}
 
-void rubiks::rotateside(char side, bool isclockwise = true)
+void Rubiks::rotateside(char side, bool isclockwise = true)
 {
     int sdindx, t = 2, j = 0;
-    // cout << "inside rotateside func, rotating the side: " << side << endl;
     sdindx = getval(side);
-    // cout << "sdindx is: " << sdindx << endl;
     copy();
     for (int i = 0; i < 3; i++)
     {
@@ -162,17 +141,12 @@ void rubiks::rotateside(char side, bool isclockwise = true)
     }
 }
 
-void rubiks::xrotate(bool isclockwise = true)
+void Rubiks::xrotate(bool isclockwise = true)
 {
     char sds[5] = {'F', 'U', 'B', 'D', 'F'};
     if (!isclockwise)
     {
-        // cout << "Applying X'" << endl;
         swap(sds[1], sds[3]);
-    }
-    else
-    {
-        // cout << "Applying X" << endl;
     }
 
     int i = 0;
@@ -188,12 +162,10 @@ void rubiks::xrotate(bool isclockwise = true)
                 if (i == 1 || i == 2)
                 {
                     cube[getval(sds[i + 1])][2 - j][2 - k] = cubecopy[getval(sds[i])][j][k];
-                    // printf("cube[%d][%d][%d] = cubecopy[%d][%d][%d]: %c=%c\n",getval(sds[i + 1]),2 - j,2 - k,getval(sds[i]),j,k,cube[getval(sds[i + 1])][2 - j][2 - k],cubecopy[getval(sds[i])][j][k]);
                 }
                 else
                 {
                     cube[getval(sds[i + 1])][j][k] = cubecopy[getval(sds[i])][j][k];
-                    // printf("cube[%d][%d][%d] = cubecopy[%d][%d][%d]: %c=%c\n",getval(sds[i + 1]),j,k,getval(sds[i]),j,k,cube[getval(sds[i + 1])][j][k],cubecopy[getval(sds[i])][j][k]);
                 }
             }
         }
@@ -201,7 +173,7 @@ void rubiks::xrotate(bool isclockwise = true)
     }
 }
 
-void rubiks::yrotate(bool isclockwise = true)
+void Rubiks::yrotate(bool isclockwise = true)
 {
     char sds[5] = {'F', 'L', 'B', 'R', 'F'};
 
@@ -210,19 +182,11 @@ void rubiks::yrotate(bool isclockwise = true)
         // cout << "Applying Y'...\n";
         swap(sds[1], sds[3]); // for anticlockwise rotation
     }
-    else
-    {
-        // cout << "Applying Y...\n";
-    }
 
     int i = 0;
     rotateside('U', isclockwise);
-    // cout << "rotateside func is called in yrotate func!!\n";
     rotateside('D', !isclockwise); // for anticlockwise rotation
-    // cout << "rotateside func is finished in yrotate func!!\n";
-    // cout << "'copy' func is called in yrotate func!!\n";
     copy();
-    // cout << "'copy' func is finished in yrotate func!!\n";
     while (i != 4)
     {
         for (int j = 0; j < 3; j++)
@@ -236,52 +200,22 @@ void rubiks::yrotate(bool isclockwise = true)
     }
 }
 
-void rubiks::zrotate(bool isclockwise = true)
+void Rubiks::zrotate(bool isclockwise = true)
 {
-    char sds[5] = {'U', 'R', 'D', 'L', 'U'};
-
-    if (!isclockwise)
-    {
-        // cout << "Applying Z'...\n";
-        swap(sds[1], sds[3]); // for anticlockwise rotation
-    }
-    else
-    {
-        // cout << "Applying Z...\n";
-    }
-
-    rotateside('F', isclockwise);
-    rotateside('B', !isclockwise); // for anticlockwise rotation
-
-    copy();
-    int i = 0;
-    while (i != 4)
-    {
-        for (int j = 0; j < 3; j++)
-        {
-            for (int k = 0; k < 3; k++)
-            {
-                cube[getval(sds[i + 1])][k][2 - j] = cubecopy[getval(sds[i])][j][k];
-            }
-        }
-        i++;
-    }
+    xrotate(false);
+    yrotate(!isclockwise);
+    xrotate();
 }
 
-void rubiks::Frotat(bool isclockwise = true)
+void Rubiks::Frotat(bool isclockwise = true)
 {
-    // cout << "'rotateside' func is called!!\n";
     rotateside('F', isclockwise);
-    // cout << "'rotateside' func is finished!!\n";
 
     int i = 0;
-    // cout << "'copy()' func is called!!\n";
     copy();
-    // cout << "'copy()' func is finished!!\n";
 
     if (!isclockwise)
     {
-        // cout << "Applying F'...\n";
         for (int k = 0; k < 3; k++)
         {
             cube[1][2 - k][2 - i] = cubecopy[0][2 - i][k];
@@ -292,71 +226,60 @@ void rubiks::Frotat(bool isclockwise = true)
     }
     else
     {
-        // cout << "Applying F...\n";
         for (int k = 0; k < 3; k++)
         {
-            // cout << "k: " << k << endl;
-            // printf("cube[%d][%d][%d] = cubecopy[%d][%d][%d]: %c = %c",getval('D'),i,2 - k,getval('R'),k,i,cube[getval('D')][i][2 - k],cubecopy[getval('R')][k][i]);
             cube[4][k][i] = cubecopy[0][2 - i][k];
             cube[5][i][2 - k] = cubecopy[4][k][i];
             cube[1][2 - k][2 - i] = cubecopy[5][i][2 - k];
             cube[0][2 - i][k] = cubecopy[1][2 - k][2 - i];
         }
     }
-    // cout << "returning from 'Frotat' func\n";
 }
 
-void rubiks::Brotat(bool isclockwise = true)
+void Rubiks::Brotat(bool isclockwise = true)
 {
-    // cout << "yrotate is called!!\n";
     yrotate();
-    // cout << "yrotate is finished!!\n";
     yrotate();
     Frotat(isclockwise);
     yrotate(false);
     yrotate(false);
 }
 
-void rubiks::Rrotat(bool isclockwise = true)
+void Rubiks::Rrotat(bool isclockwise = true)
 {
     yrotate();
     Frotat(isclockwise);
     yrotate(false);
 }
 
-void rubiks::Lrotat(bool isclockwise = true)
+void Rubiks::Lrotat(bool isclockwise = true)
 {
     yrotate(false);
     Frotat(isclockwise);
     yrotate();
 }
 
-void rubiks::Urotat(bool isclockwise = true)
+void Rubiks::Urotat(bool isclockwise = true)
 {
     xrotate(false);
     Frotat(isclockwise);
     xrotate();
 }
 
-void rubiks::Drotat(bool isclockwise = true)
+void Rubiks::Drotat(bool isclockwise = true)
 {
     xrotate();
     Frotat(isclockwise);
     xrotate(false);
 }
 
-void rubiks::Erotat(bool isclockwise = true)
+void Rubiks::Erotat(bool isclockwise = true)
 {
     char sds[5] = {'F', 'R', 'B', 'L', 'F'};
 
     if (!isclockwise)
     {
-        // cout << "Applying E'...\n";
         swap(sds[1], sds[3]); // for anticlockwise rotation
-    }
-    else
-    {
-        // cout << "Applying E...\n";
     }
 
     int i = 0;
@@ -372,21 +295,21 @@ void rubiks::Erotat(bool isclockwise = true)
     }
 }
 
-void rubiks::Mrotat(bool isclockwise = true)
+void Rubiks::Mrotat(bool isclockwise = true)
 {
     zrotate(false);
-    Erotat(isclockwise);
+    Erotat(!isclockwise);
     zrotate();
 }
 
-void rubiks::Srotat(bool isclockwise = true)
+void Rubiks::Srotat(bool isclockwise = true)
 {
     xrotate(false);
     Erotat(isclockwise);
     xrotate();
 }
 
-void rubiks::printCube(void)
+void Rubiks::printCube(void)
 {
     for (int i = 0; i < 6; i++)
     {
@@ -405,10 +328,8 @@ void rubiks::printCube(void)
     return;
 }
 
-void rubiks::performMove(const string move)
+bool Rubiks::performMove(const string move)
 {
-    // cout << "'performMove(const string move)' func is called\n";
-    // cout << "performing " << move << "...\n";
     bool isclockwise = true;
     int time = 1, i = 0;
 
@@ -424,29 +345,22 @@ void rubiks::performMove(const string move)
         }
         else
         {
-            cout << "invalid move!! exiting..." << endl;
-            return;
+            return false;
         }
     }
 
     // adding move to performed moves VECTOR
     // performedMoves.push_back(move);
-    // cout << "move: " << move << " is added to performedmoves vector!!\n";
 
     while (i < time)
     {
-        // cout << "switched to move[0]: " << move[0] << endl;
         switch (move[0])
         {
         case 'F':
-            // cout << "func Frotat is called\n";
             Frotat(isclockwise);
-            // cout << "func Frotat is finished\n";
             break;
         case 'B':
-            // cout << "func Brotat is called\n";
             Brotat(isclockwise);
-            // cout << "func Brotat is finished\n";
             break;
         case 'L':
             Lrotat(isclockwise);
@@ -469,42 +383,45 @@ void rubiks::performMove(const string move)
         case 'S':
             Srotat(isclockwise);
             break;
+        case 'X':
+            xrotate(isclockwise);
+            break;
+        case 'Y':
+            yrotate(isclockwise);
+            break;
+        case 'Z':
+            zrotate(isclockwise);
+            break;
         default:
             break;
         }
         i++;
     }
-    return;
+    return true;
 }
 
-void rubiks::executeMoves(string moves)
+void Rubiks::executeMoves(string moves)
 {
     if (moves == ""){
-        cout << "(in executeMoves func) moves is empty!! returning...\n";
         return;
-    }
-    string move = "";
-    if (moves[moves.length()-1] != ' ')
-    {
-        moves += ' ';
     }
 
     for (int i = 0; i < moves.length(); i++)
     {
-        if (moves[i] == ' ')
+        if (i+1 < moves.length() && (moves[i+1] == '\'' || moves[i+1] == '2'))
         {
-            performMove(move);
-            // cout << "Move performed: " << move << endl;
-            move = "";
+            // move += moves[i];
+            // move += moves[i+1];
+            performMove(moves.substr(i, 2));
+            // move = "";
+            i++;
+            continue;
         }
-        else
-        {
-            move += moves[i];
-        }
+        performMove(moves.substr(i, 1));
     }
 }
 
-bool rubiks::issolved(void)
+bool Rubiks::issolved(void)
 {
     if (isSolved)
     {
@@ -526,29 +443,30 @@ bool rubiks::issolved(void)
             }
         }
     }
+
     isSolved = true;
     return true;
 }
 
-void rubiks::inputFromFile(std::string fname){
+void Rubiks::inputFromFile(std::string fname){
     std::ifstream fin;
     std::string line;
-    int k=0,l=0;
+    int col=0,row=0;
     fin.open(fname);
-    for (int i = 0; i < 6; i++)
+    for (int side = 0; side < 6; side++)
     {
         getline(fin, line);
-        l = 0;
-        for (int j = 0; j < line.length(); j++)
+        col=0;row=0; // reset for next side
+        for (int i = 0; i < line.length(); i++)
         {
-            if (line[j] != ' ')
+            if (line[i] != ' ')
             {
-                cube[i][l][k] = line[j];
-                cubecopy[i][l][k] = line[j];
-                k++;
-                if(k > 2){
-                    k = 0;
-                    l++;
+                cube[side][row][col] = line[i];
+                cubecopy[side][row][col] = line[i];
+                col++;
+                if(col > 2){
+                    col = 0;
+                    row++;
                 }
             }
             
@@ -558,32 +476,52 @@ void rubiks::inputFromFile(std::string fname){
     return;
 }
 
-// void rubiks::solve(int depth = 20)
-// {
-//     vector<rubiks> cubes;
-//     int sz = cubes.size();
-//     for (int tmpDepth = 0; tmpDepth < depth; tmpDepth++)
-//     {
-//         sz = cubes.size();
-//         for (int i = 0; i < cubes.size(); i++)
-//         {
-//             cubes[i].copy(cube);
-//         }
-//         rubiks x(cube);
-//         cubes.push_back(x);
+void Rubiks::outputToFile(std::string fname){
+    std::ofstream fout;
+    std::string line;
+    int col=0,row=0;
+    fout.open(fname);
+    for (int side = 0; side < 6; side++)
+    {
+        col=0;row=0; // reset for next side
+        line = "";
+        for (int i = 0; i < 9; i++)
+        {
+            line += cube[side][row][col];
+            line += ' ';
+            col++;
+            if(col > 2){
+                col = 0;
+                row++;
+            }
+        }
+        line[line.length()-1] = '\n';
+        fout << line;
+    }
+    fout.close();
+    return;
+}
 
-//         sz = cubes.size();
-//         for (int i = 0; i < sz; i++)
-//         {
-//             for (int j = 0; j < 27; j++)
-//             {
-//                 cubes[sz].copy(cubes[sz - 1].cube);
-//                 cubes[sz].performMove(totalValidMoves[i]);
-//                 if (cubes[sz].issolved())
-//                 {
-//                 }
+// string * Rubiks::getSidesString(){
+//     string sides[6];
+//     for(int i=0; i<6; i++){
+//         sides[i] = "";
+//         for(int j=0;j<3;j++){
+//             for(int k=0; k<3; k++){
+//                 sides[i] += cube[i][j][k];
 //             }
 //         }
 //     }
+//     return sides;
 // }
 
+string Rubiks::getSideString(int side){
+    char sides[] = {'U', 'L', 'F', 'B', 'R', 'D'};
+    string s = "";
+    for(int j=0;j<3;j++){
+        for(int k=0; k<3; k++){
+            s += cube[side][j][k];
+        }
+    }
+    return s;
+}

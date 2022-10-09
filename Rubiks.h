@@ -2,10 +2,7 @@
 #define __RUBIKS__H
 
 #include <iostream>
-// #include <random>
-// #include <vector>
-
-// using namespace std;
+#include <vector>
 
 class Rubiks
 {
@@ -14,16 +11,16 @@ private:
     char cubecopy[6][3][3];
 
     // total valid moves that can be performed on a cube
-    std::string totalValidMoves[27] = {"F", "B", "L", "R", "U", "D", "E", "M", "S", "F'", "B'", "L'", "R'", "U'", "D'","E'", "M'", "S'", "F2", "B2", "L2", "R2", "U2", "D2", "E2", "M2", "S2"};
+    const std::string totalValidMoves[27] = {"F", "B", "L", "R", "U", "D", "E", "M", "S", "F'", "B'", "L'", "R'", "U'", "D'","E'", "M'", "S'", "F2", "B2", "L2", "R2", "U2", "D2", "E2", "M2", "S2"};
 
     // std::vector<std::string> performedMoves;
 
     // for getting value by KEY or key by VALUE
-    std::vector<char> keys = {'U', 'L', 'F', 'B', 'R', 'D'};
-    std::vector<int> vals = {0, 1, 2, 3, 4, 5};
+    const std::vector<char> keys = {'U', 'L', 'F', 'B', 'R', 'D'};
+    const std::vector<int> vals = {0, 1, 2, 3, 4, 5};
 
     // default colours indexed sidewise
-    char colors[6] = {'w', 'g', 'r', 'o', 'b', 'y'};
+    const char colors[6] = {'w', 'g', 'r', 'o', 'b', 'y'};
 
 public:
     // cube is solved or not
@@ -53,7 +50,7 @@ public:
     char getkey(int val);
 
     // set the value of KEY to VAL
-    void setval(char key, int val);
+    // void setval(char key, int val);
 
     // copy the given cube in current default cube
     void copy(char(*)[3][3], bool);
@@ -61,23 +58,36 @@ public:
     // copy the cube from the given instance of Rubiks class
     void copy(Rubiks&);
 
-    char* getCube(void);
+    // char* getCube(void);
 
     // create's a initial solved cube by default colours
     void initialCube(void);
 
     void printCube(void);
+
     // check if the cube is solved or not
     bool issolved(void);
+
     // execute a string of moves seperated by spaces
     void executeMoves(const std::string);
     // perform a single move F, F', F2=F2'
-    void performMove(const std::string);
-    // // solve the cube and return the shortest solving moves string
+
+    bool performMove(const std::string);
+
+    // solve the cube and return the shortest solving moves string
     // void solve(int);
 
     // takes input from file
     void inputFromFile(std::string);
+
+    // write the current cube, as it is, to the output file
+    void outputToFile(std::string);
+
+    // returns all the sides of the cube in a string array, without a separator
+    std::string * getSidesString(void);
+
+    // returns a single side of the cube in a string, without a separator
+    std::string getSideString(int);
 
     void rotateside(char, bool);
     void xrotate(bool); // rotate the cube to the X axis

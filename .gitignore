@@ -1,0 +1,4 @@
+solver.*
+main
+*.o
+*.txt

@@ -1,83 +1,301 @@
-#include <iostream>
-#include <conio.h>
-#include <random>
+#include <ncurses.h>
+#include <string>
 #include <vector>
-#include <bits/stdc++.h>
-#include <thread>
-#include <queue>
-#include "rubiks.h"
-#include "solver.h"
+
+#include "Rubiks.h"
+
+#define WHITE 11
+#define GREEN 12
+#define BLUE 13
+#define RED 14
+#define ORANGE 15
+#define YELLOW 16
+#define INPWIN 50
+#define KEY_RETURN 10
+
+// “I’m not exactly Zhuge Liang or Kuroda Kanbei. I don’t have any plans.”
 
 using namespace std;
 
-int main(int argc, char const *argv[])
+WINDOW *cubeSide[9];
+WINDOW *inpWin;
+int currSide = 2; // current cube side that is displayed
+Rubiks cube; // our main character
+int XCENTER, YCENTER;
+
+const int KEY_ESCAPE = 27;
+
+void bx(){
+    // cube
+    int y = (LINES/2) - 3;
+    int x = (COLS/2) - 6;
+    int clr = 11;
+    for(int b=y;b<y+6;b+=2){
+        for(int k=x; k<x+12; k+=4){
+            attron(COLOR_PAIR(clr) | A_BOLD);
+            for(int i=k;i<k+4;i++){
+                for(int j=b;j<b+2;j++){
+                    mvprintw(j, i, " ");
+                }
+            }
+            attron(COLOR_PAIR(clr) | A_BOLD);
+            clr++;
+            if(clr > 16) clr = 11;
+        }
+    }
+}
+
+int color(char ch){
+    switch(ch){
+        case 'r':
+            return RED;
+        case 'w':
+            return WHITE;
+        case 'g':
+            return GREEN;
+        case 'y':
+            return YELLOW;
+        case 'o':
+            return ORANGE;
+        case 'b':
+            return BLUE;
+        default:
+            return -1;
+    }
+}
+
+void updateWinCube(string sideColors){
+    // updates the window-cube
+    for(int i=0; i<9; i++){
+        wbkgd(cubeSide[i], COLOR_PAIR(color(sideColors[i])));
+        wrefresh(cubeSide[i]);
+    }
+}
+
+void initializeWinCube(void){
+    // creating windows representing each block of a single side of RubiksCube
+    int c_rows = 3, c_cols = c_rows*2; // size of one RubiksCube block
+    int upward = (int)((LINES/100.00)*20);
+
+    // to center the cube
+    int y = (LINES/2) - (c_rows*3)/2 - upward;
+    int x = (COLS/2) - (c_cols*3)/2;
+
+    int block = 0, j = y;
+
+    for(int row=0; row<3; row++){
+        for(int i=x;i<x+(c_cols*3);i+=c_cols){
+            cubeSide[block] = newwin(c_rows, c_cols, j, i);
+            // box(cubeSide[block], ACS_VLINE, ACS_HLINE);
+            // wrefresh(cubeSide[block]);
+            block++;
+        }
+        j += c_rows;
+    }
+}
+
+int rgb2Trgb(int rgb){
+    if(rgb==0) return 0;
+    // trgb stands for terminal specific rgb values that ranges from 0 to 1000
+    int trgb;
+    trgb = ((rgb*100)/255) * 10; // according to percentage, rgb%255=trgb%1000
+    return trgb;
+}
+
+void parse_input(string input){
+    cube.executeMoves(input);
+    // updateWinCube(cube.getSideString(currSide));
+}
+
+bool isValidChar(char ch){
+    char valids[] = "FfBbUuDdRrLlEeMmSsXxYyZz'2";
+    for(int i=0;i<26;i++){
+        if(valids[i] == ch) return true;
+    }
+    return false;
+}
+
+void updateSide(){
+    char sides[] = {'U', 'L', 'F', 'B', 'R', 'D'};
+    string side = "";
+    char spaces[] = "         ";
+    switch(currSide){
+        case 0:
+            side = "UP";
+            break;
+        case 1:
+            side = "LEFT";
+            break;
+        case 2:
+            side = "FRONT";
+            break;
+        case 3:
+            side = "BACK";
+            break;
+        case 4:
+            side = "RIGHT";
+            break;
+        case 5:
+            side = "DOWN";
+            break;
+        default:
+            side = "UNDEFINED";
+    }
+    int x = (COLS / 2) - 4;
+    move(1, x);
+    addstr(spaces);
+    x = (COLS / 2) - (side.length() / 2);
+    move(1, x);
+    addstr(side.c_str());
+    refresh();
+}
+
+int main(int argc, char ** argv)
 {
-    rubiks cube;
-    time_t start, end;
-	
-	int num;
-	if (argc > 1){
-		for (int n = 0; n < 2; n++)
-		{
-			if (argv[1][n] == 0){
-				break;
-			}
-			num = (num*10) + (argv[1][n] - 48);
-		}
-	}else{num = 2;}
+    // init screen and sets up screen
+    initscr();
+    curs_set(FALSE); // for hiding the blinking cursor
+    if(!has_colors()){
+        printw("Your screen doesn't support colors, exiting...\n");
+        endwin();
+        return 0;
+    } else{
+        start_color();
+    }
 
-    // for (int i = 0; i < 6; i++)
-    // {
-    //     for (int j = 0; j < 3; j++)
-    //     {
-    //         for (int k = 0; k < 3; k++)
-    //         {
-    //             printf("\rEnter [%d][%d] of face %c: ",j,k, cube.getval(i));
-    //             cin >> cb[i][j][k];
-    //         }
-    //     }
-    // }
-    // cube.copy(cb, true);
-    // system("cls");
-    // cout << "Inputting cube from file...\n";
-    cube.inputFromFile("name.txt");
+    if(!can_change_color()){
+        init_pair(WHITE, COLOR_WHITE, COLOR_WHITE);
+        init_pair(GREEN, COLOR_GREEN, COLOR_GREEN);
+        init_pair(BLUE, COLOR_BLUE, COLOR_BLUE);
+        init_pair(RED, COLOR_RED, COLOR_RED);
+        init_pair(ORANGE, COLOR_YELLOW, COLOR_YELLOW);
+        init_pair(YELLOW, COLOR_MAGENTA, COLOR_MAGENTA);
+    } else {
+        // initializing colors 
+        init_color(WHITE, 1000, 1000, 1000);
+        init_color(GREEN, rgb2Trgb(39), rgb2Trgb(183), 0);
+        init_color(BLUE, rgb2Trgb(2), rgb2Trgb(107), rgb2Trgb(206));
+        init_color(RED, rgb2Trgb(239), rgb2Trgb(4), rgb2Trgb(8));
+        init_color(ORANGE, rgb2Trgb(252), rgb2Trgb(83), rgb2Trgb(27));
+        // init_color(YELLOW, 988, 780, 156);
+        init_color(YELLOW, rgb2Trgb(238), rgb2Trgb(252), rgb2Trgb(50));
 
-    cout << "After Inputing your cube is: \n";
-    cube.printCube();
-	
-	cout << "\nEnter any key to start: ";
-	getchar();
-	system("cls");
+        // initializing color pairs
+        init_pair(WHITE, WHITE, WHITE);
+        init_pair(GREEN, GREEN, GREEN);
+        init_pair(BLUE, BLUE, BLUE);
+        init_pair(RED, RED, RED);
+        init_pair(ORANGE, ORANGE, ORANGE);
+        init_pair(YELLOW, YELLOW, YELLOW);
+        init_pair(INPWIN, WHITE, GREEN);
+    }
+    keypad(stdscr, TRUE);
+    raw();
+    cbreak();
+    noecho();
 
-    // cout << "creating solver obj...\n";
-    solver solver1(cube);
-    time(&start);
-    // cout << "start time captured.\n";
-    // cout << "calling solve function...\n";
-    solver1.solve(20, num);
-    time(&end);
-    // cout << "end time captured.\n";
-    // cout << "analysing and printing...\n";
-    // solver1.analyseNprnt();
+    refresh();
+    initializeWinCube();
+    updateSide();
+    refresh();
 
-    // cout << "Applying moves...\n";
-    // cube.executeMoves("M E' M' E");
+    YCENTER = LINES / 2;
+    XCENTER = COLS / 2;
 
-    // cout << "After rotation moves: \n";
-    // cube.printCube();
+    inpWin = newwin(LINES - (int)((LINES/100.00)*70), COLS, (int)((LINES/100.00)*70), 0);
+    // box(inpWin, ACS_VLINE, ACS_HLINE);
+    wbkgd(inpWin, COLOR_PAIR(INPWIN));
+    wmove(inpWin, 1, 1);
+    waddch(inpWin, '>');
+    wrefresh(inpWin);
 
-    // cout << "Checking cube is solved or not...\n";
-    // if (cube.issolved())
-    // {
-    //     cout << "Congratulations cube is solved.\n";
-    // }
-    // else
-    // {
-    //     cout << "Sorry but the cube isn't solved yet!!\n";
-    // }
-    cout << "\nstart time of the programm by time function: " << start << setprecision(5) << endl;
-    cout << "end time of the programm by time function: " << end << setprecision(5) << endl;
-    double time_taken = double(end - start);
-    cout << "total time taken by the programm is: " << time_taken << setprecision(5);
+
+    int ch;
+    int ext = 0;
+    int side = 2;
+    cube.inputFromFile("cube.txt");
+    updateWinCube(cube.getSideString(currSide));
+    string inp;
+    while(ext != 1){
+        // print to screen
+        ch = getch();
+        // beep();
+        switch(ch){
+            case KEY_UP:
+                side++;
+                if(side>5) side=0;
+                break;
+
+            case KEY_DOWN:
+                side--;
+                if(side<0) side=5;
+                break;
+
+            case KEY_LEFT:
+                side--;
+                if(side<0) side=5;
+                break;
+
+            case KEY_RIGHT:
+                side++;
+                if(side>5) side=0;
+                break;
+
+            case KEY_RETURN:{
+                parse_input(inp);
+                wmove(inpWin, 1, 1);
+                wdeleteln(inpWin);
+                wdeleteln(inpWin);
+                wmove(inpWin, 2, 1);
+                wprintw(inpWin, "Excuted Moves: %s", inp.c_str());
+                wmove(inpWin, 1, 1);
+                waddch(inpWin, '>');
+                wrefresh(inpWin);
+                inp.clear();
+                break;
+            }
+
+            case KEY_BACKSPACE:
+                if(inp.length() == 0) break;
+                wmove(inpWin, 1, inp.length());
+                wdelch(inpWin);
+                wrefresh(inpWin);
+                inp.pop_back();
+                break;
+
+            case KEY_ESCAPE:
+                ext = 1;
+                break;
+
+            default:{
+                if(isValidChar(ch)){
+                    if(ch >= 97 && ch <= 122) ch = ch - 32;
+                    inp.push_back(ch);
+                    waddch(inpWin,ch);
+                    // wprintw(inpWin,"%d", ch);
+                    wrefresh(inpWin);
+                }
+            }
+        }
+        refresh();
+        currSide = side;
+        updateSide();
+        updateWinCube(cube.getSideString(side));
+        refresh();
+    }
+
+
+    // refreshes the screen
+    // refresh();
+
+    // pause the screen output
+    // curs_set(TRUE);
+
+    // getch();
+
+    // deallocates memory and ends ncurses
+    endwin();
     return 0;
 }
+
+
