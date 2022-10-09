@@ -2,3 +2,4 @@ solver.*
 main
 *.o
 *.txt
+*.token
