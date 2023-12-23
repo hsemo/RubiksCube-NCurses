@@ -6,4 +6,4 @@ cd RubiksCube-NCurses
 g++ Rubiks.h Rubiks.cpp main.cpp -o main -lncurses
 ./main
 
-NCurses library is required.
+libncurses is required.
